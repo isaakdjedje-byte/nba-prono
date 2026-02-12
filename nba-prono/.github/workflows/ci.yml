@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  quality-gates:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: nba-prono/package-lock.json
+
+      - name: Pre-check workspace context
+        working-directory: nba-prono
+        run: node scripts/check-workspace-context.mjs
+
+      - name: Install dependencies
+        working-directory: nba-prono
+        run: npm ci
+
+      - name: Lint
+        working-directory: nba-prono
+        run: |
+          if ! npm run lint; then
+            echo "::error::Lint failed. Run 'npm run lint' locally and fix reported issues."
+            exit 1
+          fi
+
+      - name: Unit tests
+        working-directory: nba-prono
+        run: |
+          if ! npm run test:unit; then
+            echo "::error::Unit tests failed. Run 'npm run test:unit' locally to reproduce and fix."
+            exit 1
+          fi
+
+      - name: Contract checks
+        working-directory: nba-prono
+        run: |
+          if ! npm run contracts:check; then
+            echo "::error::Contract check failed. Regenerate and commit the OpenAPI spec with 'npm run contracts:check'."
+            exit 1
+          fi
+
+      - name: Smoke tests
+        working-directory: nba-prono
+        run: |
+          if ! npm run test:smoke; then
+            echo "::error::Smoke tests failed. Run 'npm run test:smoke' locally to reproduce and fix."
+            exit 1
+          fi
