@@ -1,0 +1,246 @@
+# =============================================================================
+# POLICY THRESHOLDS - Single Source of Truth
+# =============================================================================
+# WARNING: This file is the SINGLE SOURCE OF TRUTH for all business constants.
+# Both Python and TypeScript services read from this file.
+# 
+# DO NOT modify values without:
+# 1. Checking impact on both Python and TypeScript code
+# 2. Running the coherence test: npm run test:threshold-coherence
+# 3. Updating related documentation
+# 4. Notifying the team
+# =============================================================================
+
+version: "1.0.0"
+last_updated: "2026-02-11"
+owner: "Isaak (Lead Project)"
+
+# =============================================================================
+# QUALITY THRESHOLDS (Story 1.3)
+# =============================================================================
+quality:
+  # Seuil critique de qualité data
+  # Si plus de X% des matchs échouent la validation qualité -> trigger fallback
+  critical_failure_threshold: 0.20  # 20%
+  
+  # Seuil minimum pour scoring
+  # Si qualité < X%, le match est exclu du scoring
+  minimum_for_scoring: 0.80  # 80%
+  
+  # Règles de validation
+  validation_rules:
+    completeness_weight: 0.25
+    validity_weight: 0.25
+    consistency_weight: 0.25
+    timeliness_weight: 0.25
+
+# =============================================================================
+# GATES THRESHOLDS (Story 1.5)
+# =============================================================================
+gates:
+  # Gate Edge - Winner
+  # Edge = |probabilité prédite - 0.5|
+  # Si edge < threshold -> gate failed
+  edge_winner:
+    threshold: 0.05  # 5%
+    description: "Marge minimale pour prédiction winner"
+  
+  # Gate Edge - Over/Under
+  # Edge = |score projeté - line| / line
+  edge_over_under:
+    threshold: 0.03  # 3%
+    description: "Marge minimale pour prédiction over/under"
+  
+  # Gate Confiance
+  # Confiance = qualité_data * 0.6 + stabilité_historique * 0.4
+  confidence:
+    threshold: 0.70  # 70%
+    description: "Confiance minimale requise dans le signal"
+  
+  # Gate Dérive
+  # Dérive = |prédiction_courante - moyenne_5derniers| / moyenne_5derniers
+  drift:
+    threshold: 0.15  # 15%
+    description: "Variation maximale acceptable vs historique"
+
+# =============================================================================
+# HARD-STOPS THRESHOLDS (Story 1.7)
+# =============================================================================
+hard_stops:
+  # Cap de perte journalier
+  # Si pertes du jour >= cap -> hard-stop actif
+  daily_loss_cap:
+    value: 50
+    unit: "EUR"  # ou "PERCENT_BANKROLL"
+    description: "Perte maximale acceptée par jour"
+  
+  # Série de pertes consécutives
+  # Si N paris perdants consécutifs -> hard-stop actif
+  max_consecutive_losses:
+    count: 3
+    description: "Nombre maximum de pertes consécutives"
+  
+  # Drawdown maximum
+  # Drawdown = (Peak - Current) / Peak sur window glissante
+  max_drawdown:
+    percent: 0.20  # 20%
+    window_days: 30
+    description: "Drawdown maximum sur période glissante"
+  
+  # Hard-stop manuel (admin)
+  manual_halt:
+    enabled: true
+    description: "Arrêt d'urgence par opérateur"
+
+# =============================================================================
+# SCORING PARAMETERS (Story 1.4)
+# =============================================================================
+scoring:
+  # Line over/under par défaut
+  default_line_over_under: 220.5
+  
+  # Historique minimum requis pour scoring
+  min_historical_games: 5
+  
+  # Retry configuration
+  max_retries: 3
+  retry_delay_ms: 1000
+
+# =============================================================================
+# API/PERFORMANCE LIMITS
+# =============================================================================
+performance:
+  # NFR1: Temps de réponse API
+  api_response_timeout_ms: 300
+  
+  # NFR1: Temps d'affichage UI
+  ui_max_load_time_ms: 2000
+  
+  # Pagination
+  default_page_size: 50
+  max_page_size: 100
+  
+  # Cache
+  cache_ttl_seconds: 60
+
+# =============================================================================
+# PERFORMANCE THRESHOLDS (Epic 3)
+# =============================================================================
+performance_analytics:
+  # Win rate targets
+  win_rate:
+    min_acceptable: 0.52    # 52% minimum (breakeven with vig)
+    target: 0.55            # 55% target
+    excellent: 0.60         # 60% excellent
+  
+  # ROI targets
+  roi:
+    min_acceptable: 0.02    # 2% minimum ROI
+    target: 0.05            # 5% target
+    excellent: 0.10         # 10% excellent
+  
+  # Sample size minimums for significance
+  sample_size:
+    min_decisions: 100      # Need 100+ decisions for significance
+    min_days: 30            # Need 30+ days of history
+    confidence_level: 0.95  # 95% confidence interval
+
+# =============================================================================
+# ALERT THRESHOLDS (Story 3.5)
+# =============================================================================
+alerts:
+  performance_degraded:
+    win_rate_drop: 0.05     # Alert if win rate drops 5%
+    roi_negative: true      # Alert if ROI negative
+    consecutive_losses: 3   # Alert after 3 consecutive losses
+  
+  data_quality:
+    quality_score_drop: 0.10 # Alert if quality drops 10%
+    source_failure: 0.30     # Alert if 30% sources fail
+  
+  system:
+    api_latency_ms: 2000     # Alert if API > 2s
+    error_rate: 0.01         # Alert if > 1% errors
+    drift_detected: 0.20     # Alert if drift > 20%
+
+# =============================================================================
+# UI/UX THRESHOLDS
+# =============================================================================
+ux:
+  # Pagination
+  pagination:
+    default_page_size: 20
+    max_page_size: 50
+    page_size_options: [10, 20, 50]
+  
+  # Time ranges for filtering
+  time_ranges:
+    presets:
+      - label: "7 derniers jours"
+        days: 7
+      - label: "30 derniers jours"
+        days: 30
+      - label: "90 derniers jours"
+        days: 90
+      - label: "Tout l'historique"
+        days: all
+    max_custom_range_days: 365  # Max 1 year per query
+  
+  # Cache durations (seconds)
+  cache:
+    decisions_list: 60      # 1 minute
+    decision_detail: 300    # 5 minutes
+    performance_data: 300   # 5 minutes
+    audit_logs: 60          # 1 minute
+
+# =============================================================================
+# GENERATION CONFIG (for TypeScript types)
+# =============================================================================
+generation:
+  typescript:
+    output_path: "nba-prono/src/config/generated-thresholds.ts"
+    generate_interfaces: true
+    generate_constants: true
+    validate_on_build: true
+  
+  python:
+    output_path: "spark-runner/config/generated_thresholds.py"
+    generate_dataclasses: true
+    validate_on_import: true
+
+# =============================================================================
+# VALIDATION RULES (enforced in CI)
+# =============================================================================
+validation:
+  # Ensure Python and TypeScript values match
+  cross_language_sync: true
+  
+  # Ensure thresholds are logically consistent
+  logical_checks:
+    - "gates.edge_winner.threshold < 0.10"
+    - "gates.confidence.threshold > 0.50"
+    - "hard_stops.daily_loss_cap.value > 0"
+    - "performance_analytics.win_rate.min_acceptable < performance_analytics.win_rate.target"
+  
+  # Require approval for certain changes
+  approval_required:
+    - "hard_stops.*"
+    - "gates.*.threshold"
+    - "performance_analytics.win_rate.*"
+    - "quality.critical_failure_threshold"
+
+# =============================================================================
+# CHANGE LOG
+# =============================================================================
+# 2026-02-11: Initial version (v1.0.0)
+#   - Aligned with Story 1.3, 1.5, 1.7 completion
+#   - Fixed inconsistencies between Python and TypeScript implementations
+#   - All thresholds validated by Product Owner
+#
+# 2026-02-12: Enhanced version (v1.1.0)
+#   - Added Epic 3 performance thresholds (RETRO-1-002)
+#   - Added alert thresholds for Story 3.5
+#   - Added UI/UX thresholds for consistency
+#   - Added validation rules for CI
+#   - Added generation config for auto-TS/Python
+# =============================================================================

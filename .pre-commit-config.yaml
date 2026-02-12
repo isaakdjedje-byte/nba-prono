@@ -1,0 +1,110 @@
+# Pre-commit hooks configuration
+# 
+# Install:
+#   pip install pre-commit
+#   pre-commit install
+#
+# Run on all files:
+#   pre-commit run --all-files
+#
+# Version: 1.0
+# Created: 2026-02-14
+
+repos:
+  # ==========================================
+  # TypeScript / JavaScript
+  # ==========================================
+  - repo: https://github.com/pre-commit/mirrors-eslint
+    rev: v8.55.0
+    hooks:
+      - id: eslint
+        files: \.(ts|tsx|js|jsx)$
+        types: [file]
+        additional_dependencies:
+          - eslint@8.55.0
+          - eslint-config-next@14.0.0
+          - eslint-plugin-react@7.33.0
+          - eslint-plugin-react-hooks@4.6.0
+          - eslint-plugin-import@2.29.0
+          - '@typescript-eslint/eslint-plugin@6.14.0'
+          - '@typescript-eslint/parser@6.14.0'
+        args: ['--fix', '--max-warnings=0']
+
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v3.1.0
+    hooks:
+      - id: prettier
+        files: \.(ts|tsx|js|jsx|json|css|md|yaml|yml)$
+        additional_dependencies:
+          - prettier@3.1.0
+          - prettier-plugin-tailwindcss@0.5.0
+
+  # ==========================================
+  # Python
+  # ==========================================
+  - repo: https://github.com/psf/black
+    rev: 23.11.0
+    hooks:
+      - id: black
+        language_version: python3.11
+        files: ^services/spark-runner/
+        args: ['--line-length=100']
+
+  - repo: https://github.com/PyCQA/isort
+    rev: 5.12.0
+    hooks:
+      - id: isort
+        files: ^services/spark-runner/
+        args: ['--profile=black', '--line-length=100']
+
+  - repo: https://github.com/PyCQA/flake8
+    rev: 6.1.0
+    hooks:
+      - id: flake8
+        files: ^services/spark-runner/
+        args: ['--max-line-length=100', '--extend-ignore=E203,W503']
+
+  # ==========================================
+  # General
+  # ==========================================
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: check-added-large-files
+        args: ['--maxkb=1000']
+      - id: check-merge-conflict
+      - id: detect-private-key
+      - id: no-commit-to-branch
+        args: ['--branch=main', '--branch=master']
+
+  # ==========================================
+  # Security
+  # ==========================================
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.4.0
+    hooks:
+      - id: detect-secrets
+        args: ['--baseline', '.secrets.baseline']
+
+  # ==========================================
+  # Custom hooks
+  # ==========================================
+  - repo: local
+    hooks:
+      - id: typescript-check
+        name: TypeScript Type Check
+        entry: bash -c 'cd nba-prono && pnpm tsc --noEmit'
+        language: system
+        files: \.(ts|tsx)$
+        pass_filenames: false
+
+      - id: threshold-coherence
+        name: Policy Thresholds Coherence Check
+        entry: bash -c 'npm run test:threshold-coherence'
+        language: system
+        files: shared-config/policy-thresholds.yaml
+        pass_filenames: false

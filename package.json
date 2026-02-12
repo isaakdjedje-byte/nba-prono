@@ -1,0 +1,28 @@
+{
+  "name": "nba-prono-workspace",
+  "version": "1.0.0",
+  "description": "NBA Prono Prediction System - BMAD Workspace",
+  "private": true,
+  "scripts": {
+    "generate:config": "node shared-config/generate-ts-config.js",
+    "test:threshold-coherence": "pytest tests/integration/test_threshold_coherence.py -v",
+    "test:python": "pytest services/spark-runner/tests -v",
+    "test:typescript": "cd nba-prono && npm test",
+    "dev:up": "docker-compose -f docker-compose.dev.yml up -d",
+    "dev:down": "docker-compose -f docker-compose.dev.yml down",
+    "dev:logs": "docker-compose -f docker-compose.dev.yml logs -f",
+    "postinstall": "npm run generate:config"
+  },
+  "devDependencies": {
+    "js-yaml": "4.1.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "workspaces": [
+    "nba-prono"
+  ],
+  "dependencies": {
+    "date-fns": "^2.30.0"
+  }
+}

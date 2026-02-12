@@ -1,0 +1,30 @@
+# Service spark-runner - Dependencies
+# Generated for story 1.2 - Ingestion des matchs NBA
+
+# Core data processing
+pyspark>=4.1.1
+
+# API Framework
+fastapi>=0.128.7
+uvicorn>=0.32.0
+
+# Data validation
+pydantic>=2.10.0
+
+# HTTP client
+requests>=2.32.0
+
+# Serialization
+pyarrow>=23.0.0
+
+# Database (PostgreSQL)
+psycopg2-binary>=2.9.10
+sqlalchemy>=2.0.0
+
+# Testing
+pytest>=8.3.0
+pytest-asyncio>=0.24.0
+httpx>=0.28.0
+
+# Environment
+python-dotenv>=1.0.0
